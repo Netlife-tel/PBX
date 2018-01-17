@@ -8,7 +8,7 @@ FROM j1mr10rd4n/debian-baseimage-docker:8.2.1
 MAINTAINER Michael Mayer <swd@michael-mayer.biz>
 
 
-# Variables
+# Set environment variables
 ENV DEBIAN_FRONTEND noninteractive
 ENV ASTERISKUSER asterisk
 
@@ -20,7 +20,7 @@ RUN mkdir -p /var/run/asterisk \
 	&& mkdir -p /usr/lib/asterisk \
 	&& mkdir -p /var/www/
 
-# Agregar usuario Asterisk
+# Add Asterisk user
 RUN useradd -m $ASTERISKUSER \
 	&& chown $ASTERISKUSER. /var/run/asterisk \ 
 	&& chown -R $ASTERISKUSER. /etc/asterisk \
@@ -31,7 +31,7 @@ RUN useradd -m $ASTERISKUSER \
 	&& chown -R $ASTERISKUSER. /var/www/ 
 	
 
-# Descarga de sonidos de alta calidad
+# Download extra high quality sounds
 WORKDIR /var/lib/asterisk/sounds
 RUN curl -f -o asterisk-core-sounds-en-wav-current.tar.gz -L http://downloads.asterisk.org/pub/telephony/sounds/asterisk-core-sounds-en-wav-current.tar.gz \
 	&& tar -xzf asterisk-core-sounds-en-wav-current.tar.gz \
@@ -62,19 +62,20 @@ RUN chown -R $ASTERISKUSER.$ASTERISKUSER /var/lib/asterisk/sounds/es  \
 
 
 
+
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
 
-# Actualizar sistema base
+# Upgrade base system
 RUN apt-get update && apt-get -y upgrade
 
-# Correr este comando al inicio de Docker
+# Run this command on docker start
 CMD ["/sbin/my_init"]
 
-# Seguir pasos de FreePBX wiki
+# *Loosely* Following steps on FreePBX wiki
 # http://wiki.freepbx.org/display/FOP/Installing+FreePBX+13+on+Ubuntu+Server+14.04.2+LTS
 
 
-# Instalar dependencias requeridas
+# Install Required Dependencies
 RUN apt-get install -y \
 		apache2 \
 		autoconf \
@@ -119,7 +120,7 @@ RUN apt-get install -y \
 		uuid \
 		uuid-dev 
 
-# Remplazando archivos por defecto para reducir el uso de memoria.
+# Replace default conf files to reduce memory usage
 COPY conf/my-small.cnf /etc/mysql/my.cnf
 COPY conf/mpm_prefork.conf /etc/apache2/mods-available/mpm_prefork.conf
 
@@ -127,10 +128,10 @@ RUN chown -R $ASTERISKUSER. /var/www/* \
 	&& rm -rf /var/www/html
 
 
-# Instalar requerimientos de Legacy pear 
+# Install Legacy pear requirements
 RUN pear install Console_Getopt
 
-# Compilar e instalar pjproject
+# Compile and install pjproject
 WORKDIR /usr/src
 RUN curl -sf -o pjproject.tar.bz2 -L http://www.pjsip.org/release/2.4/pjproject-2.4.tar.bz2 \
 	&& tar -xjvf pjproject.tar.bz2 \
@@ -142,7 +143,7 @@ RUN curl -sf -o pjproject.tar.bz2 -L http://www.pjsip.org/release/2.4/pjproject-
 	&& make install \
 	&& rm -r /usr/src/pjproject-2.4
 
-# Compilar e Instalar jansson
+# Compile and Install jansson
 WORKDIR /usr/src
 RUN curl -sf -o jansson.tar.gz -L http://www.digip.org/jansson/releases/jansson-2.7.tar.gz \
 	&& mkdir jansson \
@@ -155,7 +156,7 @@ RUN curl -sf -o jansson.tar.gz -L http://www.digip.org/jansson/releases/jansson-
 	&& make install \
 	&& rm -r /usr/src/jansson
 
-# Compilar e instalar Asterisk
+# Compile and Install Asterisk
 WORKDIR /usr/src
 RUN curl -f -o asterisk.tar.gz -L http://downloads.asterisk.org/pub/telephony/certified-asterisk/asterisk-certified-13.13-current.tar.gz
 RUN mkdir asterisk \
@@ -181,13 +182,13 @@ RUN rm -r /usr/src/asterisk
 WORKDIR /tmp
 
 
-# Descarga de dependencias (Asi se evita compilar asterisk&co durante el docker build)
+# 2nd dependency download (Placing it here avoids recompiling asterisk&co during docker build)
 RUN apt-get install -y \
 		sudo \
 		net-tools \
 		coreutils 
 
-# Configurar apache
+# Configure apache
 RUN sed -i 's/\(^upload_max_filesize = \).*/\120M/' /etc/php5/apache2/php.ini \
 	&& sed -i 's/^\(User\|Group\).*/\1 asterisk/' /etc/apache2/apache2.conf \
 	&& sed -i 's/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf \
@@ -195,7 +196,7 @@ RUN sed -i 's/\(^upload_max_filesize = \).*/\120M/' /etc/php5/apache2/php.ini \
 	&& sed -i 's/Listen 80/Listen 8082/' /etc/apache2/ports.conf
 
 
-# Configurar servicios
+# Setup services
 COPY start-apache2.sh /etc/service/apache2/run
 RUN chmod +x /etc/service/apache2/run
 
@@ -215,7 +216,7 @@ COPY conf/cdr/cdr_adaptive_odbc.conf /etc/asterisk/cdr_adaptive_odbc.conf
 RUN chown asterisk:asterisk /etc/asterisk/cdr_adaptive_odbc.conf \
 	&& chmod 775 /etc/asterisk/cdr_adaptive_odbc.conf
 
-# Descargar y preparar FreePBX
+# Download and prepare FreePBX
 WORKDIR /usr/src
 
 # Download and unzip 
@@ -242,7 +243,7 @@ RUN rm -rf /usr/src/freepbx
 
 
 ##################
-# Limpieza
+# Cleanup
 ##################
 RUN apt-get remove -y --purge autoconf \
 		automake \
