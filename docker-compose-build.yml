@@ -1,0 +1,25 @@
+# docker-compose up -d
+# docker-compose down
+# docker exec -it freepbx bash
+
+version: '2'
+services:
+  freepbx:
+    build: .
+    image: netlife/PBX
+    container_name: freepbx
+    volumes:
+      - freepbx-apache:/etc/apache2
+      - freepbx-asterisk-config:/etc/asterisk
+      - freepbx-mysql:/var/lib/mysql
+      - freepbx-asterisk-spool:/var/spool/asterisk
+      - freepbx-asterisk-data:/var/lib/asterisk
+
+volumes:
+  freepbx-apache:
+  freepbx-asterisk-config:
+  freepbx-mysql:
+  freepbx-asterisk-spool:
+  freepbx-asterisk-data:
+
+      #VOLUME ["/etc/asterisk","/etc/apache2","/var/www/html","/var/lib/mysql","/var/spool/asterisk","/var/lib/asterisk"]
