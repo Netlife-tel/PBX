@@ -158,7 +158,7 @@ RUN curl -sf -o jansson.tar.gz -L http://www.digip.org/jansson/releases/jansson-
 
 # Compile and Install Asterisk
 WORKDIR /usr/src
-RUN curl -f -o asterisk.tar.gz -L http://downloads.asterisk.org/pub/telephony/certified-asterisk/asterisk-certified-13.13-current.tar.gz
+RUN curl -f -o asterisk.tar.gz -L http://downloads.asterisk.org/pub/telephony/certified-asterisk/asterisk-certified-13.18-current.tar.gz
 RUN mkdir asterisk \
 	&& tar -xzf /usr/src/asterisk.tar.gz -C /usr/src/asterisk --strip-components=1 \
 	&& rm asterisk.tar.gz 
